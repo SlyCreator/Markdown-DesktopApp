@@ -1,0 +1,14 @@
+{
+  "name": "helloworld",
+  "version": "1.0.0",
+  "description": "a simple hello world app",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "author": "slycreator",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^6.0.12"
+  }
+}
