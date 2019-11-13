@@ -17,6 +17,15 @@ app.on('activate', (event, hasVisibleWindows) => {
     if (!hasVisibleWindows) { createWindow(); }
 });
 
+app.on('will-finish-launching', () => {
+    app.on('open-file', (event, file) => {
+        const win = createWindow();
+        win.once('ready-to-show', () => {
+            openFile(win, file)
+        })
+    })
+});
+
 const createWindow = exports.createWindow = () => {
     let x, y;
 
@@ -29,14 +38,14 @@ const createWindow = exports.createWindow = () => {
     }
 
     let newWindow = new BrowserWindow({
-         x, y, 
-         show: false,
-         webPreferences : {
-             nodeIntegration : true,
-         }
-         });
+        x, y,
+        show: false,
+        webPreferences: {
+            nodeIntegration: true,
+        }
+    });
 
-    newWindow.loadFile('./app/index.html');
+    newWindow.loadFile('index.html');
 
     newWindow.once('ready-to-show', () => {
         newWindow.show();
@@ -52,18 +61,41 @@ const createWindow = exports.createWindow = () => {
 };
 
 const getFileFromUser = exports.getFileFromUser = (targetWindow) => {
-    const files = dialog.showOpenDialog(targetWindow, {
+    dialog.showOpenDialog(targetWindow, {
         properties: ['openFile'],
         filters: [
-            { name: 'Text Files', extensions: ['txt'] },
+            { name: 'Text Files', extensions: ['txt', 'text'] },
             { name: 'Markdown Files', extensions: ['md', 'markdown'] }
         ]
+    }).then(result => {
+        const fileDir = result.filePaths;
+        openFile(targetWindow, `${fileDir}`);
+    }).catch(err => {
+        return;
+        console.log(err)
     });
 
-    if (files) { openFile(targetWindow, files[0]); }
 };
 
 const openFile = exports.openFile = (targetWindow, file) => {
-    const content = fs.readFileSync(file).toString();
+    const content = fs.readFileSync(file).toString();//
+    app.addRecentDocument(file);
+    targetWindow.setRepresentedFilename(file);//
     targetWindow.webContents.send('file-opened', file, content);
 };
+
+const saveHtml = exports.saveHtml = (targetWindow, content) => {
+    dialog.showSaveDialog(targetWindow, {
+        title: 'Save HTML',
+        defaultPath: app.getPath('documents'),
+        filters: [
+            { name: 'HTML Files', extensions: ['html', 'html'] }
+        ]
+    }).then(result => {
+        const fileDir = result.filePath
+        fs.writeFileSync(`${fileDir}`, `${content}`);
+    }).catch(err => {
+        return;
+        //console.log(err.canceled)
+    });
+}
