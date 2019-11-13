@@ -99,3 +99,19 @@ const saveHtml = exports.saveHtml = (targetWindow, content) => {
         //console.log(err.canceled)
     });
 }
+
+const saveMarkdown = exports.saveMarkdown = (targetWindow, file, content) => {
+    dialog.showSaveDialog(targetWindow, {
+        title: 'Save Markdown',
+        defaultPath: app.getPath('documents'),
+        filters: [
+            { name: 'Markdown Files', extensions: ['md', 'markdown'] }
+        ]
+    }).then(result => {
+        const fileDir = result.filePath;
+        fs.writeFileSync(`${fileDir}`, `${content}`);
+    }).catch(err => {
+        return;
+        //console.log(err.canceled)
+    });
+}
